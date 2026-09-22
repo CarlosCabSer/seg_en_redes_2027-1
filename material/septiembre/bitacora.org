@@ -85,3 +85,64 @@ UDP: Protocolo sin handshake.
   - SMTPS: [[https://www.rfc-editor.org/info/rfc8314/][RFC 8314]]: TLS implícito para SMTP /desde el establecimiento de
     sesión/
 - Formato de encabezados de correo: [[https://www.rfc-editor.org/info/rfc822/][RFC 822]]; [[https://www.rfc-editor.org/info/rfc2822/][RFC 2822]]; [[https://www.rfc-editor.org/info/rfc5322/][RFC 5322]]
+
+* 2026.09.17
+
+** Visita al centro de datos de LAMOD
+- Estrategias de enfriamiento
+- Estrategias de prevención de riesgos inherentes a la construcción (→
+  hídrico, particularmente)
+- Estrategias de alimentación eléctrica
+- Seguridad, protección de recursos
+  - Naturaleza del trabajo realizado por el laboratorio
+
+* 2026.09.22
+** Revisión de las entregas de /“Análisis de una Red Híbrida”/
+- Entregas realizadas:
+  - [[../../entregas/analisis_red_hibrida/analisis_red_hibrida_LiliBeltran/JELB_analisis_red_hibrida.md][José Lili]]
+  - [[../../entregas/analisis_red_hibrida/VicenteLuna_ASRH01.pdf][Vicente Luna]]
+  - [[../../entregas/analisis_red_hibrida/Abraham_Analisis_red.md][Abraham Medina]]
+  - [[../../entregas/analisis_red_hibrida/SIIMAS_Victor.pdf][Victor Peña]]
+  - [[../../entregas/analisis_red_hibrida/AxelRuiz.pdf][Axel Ruiz]]
+** Controlando al spam a nivel servidores: SPF, DKIM, DMARC
+- Papel de los tres componentes administrados como parte del registro DNS
+  del (sub?)dominio:
+  - SPF :: /Sender Policy Framework/.
+
+    Lista de servidores autorizados para enviar correo a nombre de
+    determinado dominio. Puede especificar tres acciones: =-all= (los
+    servidores no autorizados generan =fail=), =~all= (generan =softfail=),
+    =+all= (generan =pass=, básicamente inutilizando el mecanismo).
+
+    =$ dig +short gwolf.org TXT=
+    ="google-site-verification=4heL8E7uAUgEMrpvDTS1GfA6LvLD07EfRlIb4sq2dIc"=
+    ="v=spf1 ip4:132.248.241.1 ip4:132.248.72.73 ip4:132.248.72.123 a mx ~all"=
+
+    =$dig +short unam.mx TXT=
+    ="_euprn2dycblg2aqnmpfa3bh09u4rigr"
+    ="v=spf1 ip4:132.247.28.137 ip4:132.247.190.11 ip4:132.248.10.70 ip4:132.248.10.100 ip4:132.248.165.142 ip4:132.248.165.143 ip4:132.248.165.144 ip4:132.248.165.145 ip4:132.248.165.146 ip4:132.248.165.149 ip4:132.248.165.150 " " ip4:132.248.165.151 ip4:132.248.165.152 ip4:132.248.165.153 ip4:132.248.165.154 ip4:132.248.10.3 ip4:132.248.10.4 include:spf.protection.outlook.com -all"=
+  - DKIM :: /Domain Keys Identified Mail/.
+
+    Los servidores de correo generan una firma criptográfica para todos los
+    mensajes que profesan. El firmado /sobrevive/ a los reenvíos, pero la
+    modificación de encabezados /rompe/ la verificación (→ problemas para
+    servidores de listas 🙁). Requiere conocer el /selector/, que permite a
+    una organización segmentar su correo en varios servidores.
+
+    =$ dig +short default._domainkey.gwolf.org TXT=
+    ="v=DKIM1; h=sha256; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxqm/elCMdc2NoMh+7WAmb0MZyXSXYuLEtiIOi3pSpcDf7Dm+/a6p4Alp+hjTJ+NljvW0ibjeKYH62aqGHHHpof659KJkykCdgyd0vB/zHnhQ/K4328YcAFmReFZyFcsCGBR9kwvIIbj6oj8vNForh4YKBr8HDhUOAOghsp4RzNgvpchSkKr5HFi" "PdZzgfxPl8Cf1ZXBrPW11pt2b0xOsposjawjyvceaxGJbEQ7/kk7DjGQCqrUsNQxs9gPo94NwxgN5qHVDXlHSdYQfVfHQMJs1sg1DIDEkotVRpIwy4lsO0KmeWjfnCyxozMsEa0nXG0eMZgarEF4KLH96EwS5qQIDAQAB"=
+
+    =$dig +short rsmtp01._domainkey.unam.mx TXT=
+    ="v=DKIM1; h=sha256; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDNHX2iVI9biN3jO/MNPAEpfSofUBRqW5ceEB+6OYEe5DMwAiG9WrDW4dRK11+OrDDLkiBwScRJCNyY87XFQC3K1+j1BJPSnpv5gQ2/IxlEbMFKjQ+PQE7kpIZssEM9XELaB8GqeZZfKIGfsY7PGoiJk9RIENbBNTTD+EeDXs66kwIDAQAB"=
+  - DMARC :: /Domain-based Message Authentication Reporting and
+    Conformance/.
+
+    Políticas de manejo y reporte de los correos /sospechosos/. Puede
+    indicar a servidores receptores si deben entregar, rechazar, o /poner
+    en cuarentena/ a los correos que /fallen/ SPF o DKIM.
+
+    =dig +short _dmarc.gwolf.org TXT=
+    ="v=DMARC1; p=none; rua=mailto:postmaster@gwolf.org; ruf=mailto:postmaster@gwolf.org; rf=afrf; sp=reject; fo=1; adkim=r; aspf=r"=
+
+    =$ dig +short _dmarc.unam.mx TXT=
+    ="v=DMARC1; p=none; rua=mailto:rua_dmarc@unam.mx; ruf=mailto:reporterua_dmarc@unam.mx; fo=0:1;"=
